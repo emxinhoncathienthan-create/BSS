@@ -1127,7 +1127,7 @@ local function moveToToken(token)
 		token.Position.Z
 	)
 
-	if (root.Position - target).Magnitude > 2 then
+	if (root.Position - target).Magnitude > 2 and not pollenconvert then
 		humanoid:MoveTo(target)
 	end
 
