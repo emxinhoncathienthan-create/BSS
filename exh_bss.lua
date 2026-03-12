@@ -23,10 +23,11 @@ frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
 frame.BorderSizePixel = 0
 frame.Parent = gui
 
+
 -- // Nhận Tổ Gần Nhất \\
 
 local characterhive = player.Character or player.CharacterAdded:Wait()
-local hrphive = character:WaitForChild("HumanoidRootPart")
+local hrphive = characterhive:WaitForChild("HumanoidRootPart")
 
 local vimhive = game:GetService("VirtualInputManager")
 
@@ -38,6 +39,9 @@ button.TextSize = 11
 button.BackgroundColor3 = Color3.fromRGB(170,0,0)
 button.TextColor3 = Color3.new(1,1,1)
 button.Parent = frame
+
+local usedhive = false
+local savedPositionHive = nil
 
 local function isArrow(part)
     return string.find(part:GetFullName(),"localpatharrow") ~= nil
@@ -73,16 +77,31 @@ end
 
 button.MouseButton1Click:Connect(function()
 
-    local target = searchArrow()
+    if usedhive then
+        hrphive.CFrame = CFrame.new(savedPositionHive)
+    end
 
-    if target then
+    if not usedhive then
 
-        local top = target.Position + Vector3.new(0, target.Size.Y/2, 0)
-        hrphive.CFrame = CFrame.new(top)
+        local target = searchArrow()
 
-        task.wait(0.2)
+        if target then
 
-        pressE()
+            local top = target.Position + Vector3.new(0, target.Size.Y/2, 0)
+            hrphive.CFrame = CFrame.new(top)
+
+            task.wait(0.2)
+
+            pressE()
+
+            savedPositionHive = hrphive.Position
+
+            button.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
+            button.BackgroundColor3 = Color3.fromRGB(255,69,0)
+
+            usedhive = true
+
+        end
 
     end
 
@@ -181,7 +200,6 @@ local hideFolders = {
 	"Decorations",
 	"FieldDecos",
 	"HiveDeco",
-	"Cave",
 	"Badge Guild",
 	"Gates"
 }
@@ -229,7 +247,6 @@ local function isInStumpPath(obj)
 
 	return false
 end
-
 
 local function hideFolder(folder)
 
@@ -286,18 +303,16 @@ end)
 
 button.MouseButton1Click:Connect(function()
 
-	enabled = not enabled
-
-	if enabled then
+	if not enabled then
 		button.BackgroundColor3 = Color3.fromRGB(0,170,0)
 		applyLowGraphics()
-	else
-		button.BackgroundColor3 = Color3.fromRGB(170,0,0)
+        enabled = true
 	end
 
 end)
 
 -- \\ Giảm Đồ Hoạ //
+
 
 -- // Bay \\ 
 
@@ -699,7 +714,6 @@ end)
 -- \\ Trở Về Điểm Hồi Sinh //
 
 
-
 -- // Tự Động Cày \\
 
 local autoFarmButton = Instance.new("TextButton")
@@ -817,7 +831,7 @@ tp = Vector3.new(410,97,-170)
 
 ["Cactus Field (Zone 15)"] = {
 start = Vector3.new(-260,65,-64),
-finish = Vector3.new(-120,72,-144),
+finish = Vector3.new(-120,72,-44),
 tp = Vector3.new(-190,69,-102)
 },
 
@@ -891,6 +905,8 @@ end
 
 local regionPart
 local autoFarmRunning = false
+local pollenfull = false
+local pollenconvert = false
 
 local function createRegion(startPos,finishPos)
 
@@ -1084,6 +1100,26 @@ local function moveToToken(token)
 
 end
 
+local function getDisplayText()
+
+	local playerFolderPollen = workspace:FindFirstChild(player.Name)
+	if not playerFolderPollen then return "" end
+
+	for _,obj in pairs(playerFolderPollen:GetDescendants()) do
+		if obj.Name == "Display" then
+
+			for _,v in pairs(obj:GetDescendants()) do
+				if v:IsA("TextLabel") then
+					return v.Text
+				end
+			end
+
+		end
+	end
+
+	return ""
+end
+
 for _,name in ipairs(fields) do
 
 	local btn = Instance.new("TextButton")
@@ -1159,7 +1195,7 @@ task.spawn(function()
 			continue
 		end
 
-		if not isPlayerInsideRegion(data.start,data.finish) then
+		if not isPlayerInsideRegion(data.start,data.finish) and not pollenconvert then
 	        local character = player.Character
 	        if character then
 	        	local root = character:FindFirstChild("HumanoidRootPart")
@@ -1171,8 +1207,41 @@ task.spawn(function()
 
         local tokens = getTokensInRegion()
 
-		if #tokens > 0 and tokens[1] and tokens[1].Parent then
+		if #tokens > 0 and tokens[1] and tokens[1].Parent and not pollenconvert then
 	        moveToToken(tokens[1])
+        end
+
+        local text = getDisplayText()
+
+		local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
+
+		if left and right then
+
+			left = tonumber(left)
+			right = tonumber(right)
+
+			if left >= right then
+				pollenfull = true
+            end
+
+            if left < right and not pollenconvert then
+				pollenfull = false
+			end
+
+		end
+
+        if pollenfull and not pollenconvert then
+
+			hrphive.CFrame = CFrame.new(savedPositionHive)
+            task.wait(0.2)
+            pressE()
+
+            pollenconvert = true
+
+		end
+
+        if left == 0 then
+            pollenconvert = false
         end
 
 	end
@@ -1201,4 +1270,3 @@ UIS.InputBegan:Connect(function(input, processed)
 end)
 
 -- \\ Ẩn/Hiện Bảng Đen //
-
