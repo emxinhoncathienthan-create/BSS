@@ -23,6 +23,74 @@ frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
 frame.BorderSizePixel = 0
 frame.Parent = gui
 
+-- // Nhận Tổ Gần Nhất \\
+
+local characterhive = player.Character or player.CharacterAdded:Wait()
+local hrphive = character:WaitForChild("HumanoidRootPart")
+
+local vimhive = game:GetService("VirtualInputManager")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1,-10,0,30)
+button.Position = UDim2.new(0,10,0,0)
+button.Text = "Nhận Tổ Gần Nhất"
+button.TextSize = 11
+button.BackgroundColor3 = Color3.fromRGB(170,0,0)
+button.TextColor3 = Color3.new(1,1,1)
+button.Parent = frame
+
+local function isArrow(part)
+    return string.find(part:GetFullName(),"localpatharrow") ~= nil
+end
+
+local function searchArrow()
+
+    local origin = hrphive.Position
+    local step = 30
+    local maxRadius = 2000
+
+    for radius = step, maxRadius, step do
+
+        local parts = workspace:GetPartBoundsInRadius(origin, radius)
+
+        for _,part in ipairs(parts) do
+            if part:IsA("BasePart") and isArrow(part) then
+                return part
+            end
+        end
+
+    end
+
+    return nil
+end
+
+local function pressE()
+
+    vimhive:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    vimhive:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+
+end
+
+button.MouseButton1Click:Connect(function()
+
+    local target = searchArrow()
+
+    if target then
+
+        local top = target.Position + Vector3.new(0, target.Size.Y/2, 0)
+        hrphive.CFrame = CFrame.new(top)
+
+        task.wait(0.2)
+
+        pressE()
+
+    end
+
+end)
+
+-- \\ Nhận Tổ Gần Nhất //
+
+
 -- // Tự Động Giữ Chuột \\
 
 local UIS = game:GetService("UserInputService")
@@ -1133,3 +1201,4 @@ UIS.InputBegan:Connect(function(input, processed)
 end)
 
 -- \\ Ẩn/Hiện Bảng Đen //
+
