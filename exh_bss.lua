@@ -749,7 +749,7 @@ tp = Vector3.new(410,97,-170)
 
 ["Cactus Field (Zone 15)"] = {
 start = Vector3.new(-260,65,-64),
-finish = Vector3.new(-120,72,-44),
+finish = Vector3.new(-120,72,-144),
 tp = Vector3.new(-190,69,-102)
 },
 
