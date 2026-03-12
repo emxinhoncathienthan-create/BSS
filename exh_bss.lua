@@ -34,12 +34,13 @@ local vimhive = game:GetService("VirtualInputManager")
 local button = Instance.new("TextButton")
 button.Size = UDim2.new(1,-10,0,30)
 button.Position = UDim2.new(0,10,0,0)
-button.Text = "Nhận Tổ Gần Nhất"
+button.Text = "Nhận Tổ Gần Nhất (Nhận Rồi Cũng Ấn)"
 button.TextSize = 11
 button.BackgroundColor3 = Color3.fromRGB(170,0,0)
 button.TextColor3 = Color3.new(1,1,1)
 button.Parent = frame
 
+local nonehive = false
 local usedhive = false
 local savedPositionHive = nil
 
@@ -49,23 +50,23 @@ end
 
 local function searchArrow()
 
-    local origin = hrphive.Position
-    local step = 30
-    local maxRadius = 2000
+    local min = Vector3.new(-207, -5, 321)
+    local max = Vector3.new(15, 17, 354)
 
-    for radius = step, maxRadius, step do
+    local center = (min + max) / 2
+    local size = max - min
 
-        local parts = workspace:GetPartBoundsInRadius(origin, radius)
+    local parts = workspace:GetPartBoundsInBox(CFrame.new(center), size)
 
-        for _,part in ipairs(parts) do
-            if part:IsA("BasePart") and isArrow(part) then
-                return part
-            end
+    for _, part in ipairs(parts) do
+        if part:IsA("BasePart") and isArrow(part) then
+            nonehive = true
+            return part
         end
-
     end
 
     return nil
+    
 end
 
 local function pressE()
@@ -75,13 +76,9 @@ local function pressE()
 
 end
 
-button.MouseButton1Click:Connect(function()
+local function claimHive()
 
-    if usedhive then
-        hrphive.CFrame = CFrame.new(savedPositionHive)
-    end
-
-    if not usedhive then
+    if not usedhive and not nonehive then
 
         local target = searchArrow()
 
@@ -97,12 +94,48 @@ button.MouseButton1Click:Connect(function()
             savedPositionHive = hrphive.Position
 
             button.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
-            button.BackgroundColor3 = Color3.fromRGB(255,69,0)
+            button.BackgroundColor3 = Color3.fromRGB(204,204,0)
+
+            usedhive = true
+
+        else
+
+            local humanoidn = player.Character:FindFirstChild("Humanoid")
+
+            if humanoidn then
+                humanoidn.Health = 0
+            end
+
+            player.CharacterAdded:Connect(function(char)
+                characterhive = char
+                hrphive = char:WaitForChild("HumanoidRootPart")
+
+                task.wait(0.2)
+
+                savedPositionHive = hrphive.Position
+            end)
+
+            button.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
+            button.BackgroundColor3 = Color3.fromRGB(204,204,0)
 
             usedhive = true
 
         end
 
+    end
+
+    if usedhive then
+        hrphive.CFrame = CFrame.new(savedPositionHive)
+    end
+
+end
+
+button.MouseButton1Click:Connect(claimHive)
+
+task.spawn(function()
+
+    if not usedhive then
+        claimHive()
     end
 
 end)
@@ -1212,6 +1245,7 @@ task.spawn(function()
         end
 
         local text = getDisplayText()
+        local pollenum = 0;
 
 		local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
 
@@ -1222,6 +1256,7 @@ task.spawn(function()
 
 			if left >= right then
 				pollenfull = true
+                pollenum = left
             end
 
             if left < right and not pollenconvert then
@@ -1233,14 +1268,14 @@ task.spawn(function()
         if pollenfull and not pollenconvert then
 
 			hrphive.CFrame = CFrame.new(savedPositionHive)
-            task.wait(0.2)
+            task.wait(1)
             pressE()
-
             pollenconvert = true
+            task.wait(1)
 
 		end
 
-        if left == 0 then
+        if left == 0 or left == pollenum then
             pollenconvert = false
         end
 
