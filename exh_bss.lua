@@ -1214,7 +1214,7 @@ task.spawn(function()
 		task.wait(0)
 
         if not tudongcay then
-            return
+            continue
         end
 
 		if not autoFarmRunning then
