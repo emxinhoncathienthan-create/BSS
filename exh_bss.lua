@@ -1249,7 +1249,6 @@ task.spawn(function()
         end
 
         local text = getDisplayText()
-        local pollenum = 0;
 
 		local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
 
@@ -1260,7 +1259,6 @@ task.spawn(function()
 
 			if left >= right then
 				pollenfull = true
-                pollenum = left
             end
 
             if left < right and not pollenconvert then
@@ -1279,7 +1277,7 @@ task.spawn(function()
 
 		end
 
-        if left == 0 or left == pollenum then
+        if left == 0 then
             pollenconvert = false
         end
 
