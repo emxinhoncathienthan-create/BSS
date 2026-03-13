@@ -1127,7 +1127,7 @@ local function moveToToken(token)
 		token.Position.Z
 	)
 
-	if (root.Position - target).Magnitude > 2 and not pollenconvert then
+	if (root.Position - target).Magnitude > 2 then
 		humanoid:MoveTo(target)
 	end
 
@@ -1213,6 +1213,10 @@ task.spawn(function()
 
 		task.wait(0)
 
+        if not tudongcay then
+            return
+        end
+
 		if not autoFarmRunning then
 			continue
 		end
@@ -1228,7 +1232,7 @@ task.spawn(function()
 			continue
 		end
 
-		if not isPlayerInsideRegion(data.start,data.finish) and not pollenconvert then
+		if not isPlayerInsideRegion(data.start,data.finish) and not pollenfull and not pollenconvert then
 	        local character = player.Character
 	        if character then
 	        	local root = character:FindFirstChild("HumanoidRootPart")
@@ -1240,7 +1244,7 @@ task.spawn(function()
 
         local tokens = getTokensInRegion()
 
-		if #tokens > 0 and tokens[1] and tokens[1].Parent and not pollenconvert then
+		if #tokens > 0 and tokens[1] and tokens[1].Parent and not pollenfull and not pollenconvert then
 	        moveToToken(tokens[1])
         end
 
