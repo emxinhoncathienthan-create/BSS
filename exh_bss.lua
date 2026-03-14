@@ -1086,10 +1086,6 @@ local function getTokensInRegion()
 
 	for _,part in ipairs(parts) do
 
-        -- if hasCInPath(part) then
-        --     table.insert(tokens, part)
-        -- end
-
         local current = part
         local modelC = nil
 
