@@ -167,8 +167,6 @@ local hideFolders = {
 
 local function optimize(obj)
 
-    obj.LocalTransparencyModifier = 0
-
 	if obj:FindFirstAncestor("C") then
 		return
 	end
@@ -178,21 +176,24 @@ local function optimize(obj)
 	end
 
 	if obj:IsA("ParticleEmitter")
-	or obj:IsA("Trail")
-	or obj:IsA("Smoke")
-	or obj:IsA("Fire")
-	or obj:IsA("Sparkles") then
+	    or obj:IsA("Trail")
+	    or obj:IsA("Smoke")
+	    or obj:IsA("Fire")
+	    or obj:IsA("Sparkles") then
 		obj:Destroy()
 	end
 
+    -- giảm mesh nặng
     if obj:IsA("MeshPart") then
-        obj.LocalTransparencyModifier = 1
-        obj.CastShadow = false
-        obj.CanCollide = false
+	    obj.LocalTransparencyModifier = 1
+	    obj.CastShadow = false
+	    obj.CanCollide = false
+	    return
     end
 
     if obj:IsA("SpecialMesh") then
 	    obj:Destroy()
+	    return
     end
 
 	if obj:IsA("BasePart") then
