@@ -31,14 +31,14 @@ local hrphive = characterhive:WaitForChild("HumanoidRootPart")
 
 local vimhive = game:GetService("VirtualInputManager")
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(1,-10,0,30)
-button.Position = UDim2.new(0,10,0,0)
-button.Text = "Nhận Tổ Gần Nhất (Nhận Rồi Cũng Ấn)"
-button.TextSize = 11
-button.BackgroundColor3 = Color3.fromRGB(170,0,0)
-button.TextColor3 = Color3.new(1,1,1)
-button.Parent = frame
+local buttonhive = Instance.new("TextButton")
+buttonhive.Size = UDim2.new(1,-10,0,30)
+buttonhive.Position = UDim2.new(0,10,0,0)
+buttonhive.Text = "Nhận Tổ Gần Nhất (Nhận Rồi Cũng Ấn)"
+buttonhive.TextSize = 11
+buttonhive.BackgroundColor3 = Color3.fromRGB(170,0,0)
+buttonhive.TextColor3 = Color3.new(1,1,1)
+buttonhive.Parent = frame
 
 local nonehive = false
 local usedhive = false
@@ -93,8 +93,8 @@ local function claimHive()
 
             savedPositionHive = hrphive.Position
 
-            button.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
-            button.BackgroundColor3 = Color3.fromRGB(204,204,0)
+            buttonhive.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
+            buttonhive.BackgroundColor3 = Color3.fromRGB(204,204,0)
 
             usedhive = true
 
@@ -115,8 +115,8 @@ local function claimHive()
                 savedPositionHive = hrphive.Position
             end)
 
-            button.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
-            button.BackgroundColor3 = Color3.fromRGB(204,204,0)
+            buttonhive.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
+            buttonhive.BackgroundColor3 = Color3.fromRGB(204,204,0)
 
             usedhive = true
 
@@ -130,7 +130,7 @@ local function claimHive()
 
 end
 
-button.MouseButton1Click:Connect(claimHive)
+buttonhive.MouseButton1Click:Connect(claimHive)
 
 task.spawn(function()
 
@@ -141,78 +141,6 @@ task.spawn(function()
 end)
 
 -- \\ Nhận Tổ Gần Nhất //
-
-
--- // Tự Động Giữ Chuột \\
-
-local UIS = game:GetService("UserInputService")
-local VIM = game:GetService("VirtualInputManager")
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
-local holding = false
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "AutoHoldMouseUI"
-gui.ResetOnSpawn = false
-gui.DisplayOrder = 999999
-gui.IgnoreGuiInset = true
-gui.Parent = playerGui
-
-local label = Instance.new("TextLabel")
-label.AnchorPoint = Vector2.new(0,1)
-label.Position = UDim2.new(0,5,1,-5)
-label.Size = UDim2.new(0,260,0,18)
-label.BackgroundTransparency = 1
-label.TextSize = 12
-label.Font = Enum.Font.SourceSans
-label.TextXAlignment = Enum.TextXAlignment.Left
-label.Parent = gui
-
-local function updateText()
-	if holding then
-		label.Text = "Tự Động Giữ Chuột Bật"
-		label.TextColor3 = Color3.fromRGB(0,255,0)
-	else
-		label.Text = "Tự Động Giữ Chuột Tắt"
-		label.TextColor3 = Color3.fromRGB(255,0,0)
-	end
-end
-
-updateText()
-
-UIS.InputBegan:Connect(function(input,gameProcessed)
-
-	if gameProcessed then return end
-
-	if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
-
-		holding = not holding
-
-		if not holding then
-			VIM:SendMouseButtonEvent(0,0,0,false,game,0)
-		end
-
-		updateText()
-
-	end
-
-end)
-
-task.spawn(function()
-
-	while true do
-		task.wait(0.2)
-
-		if holding then
-			VIM:SendMouseButtonEvent(0,0,0,true,game,0)
-		end
-
-	end
-
-end)
-
--- \\ Tự Động Giữ Chuột //
 
 
 -- // Giảm Đồ Hoạ \\
@@ -239,17 +167,16 @@ local hideFolders = {
 
 local function optimize(obj)
 
-	-- nếu object nằm trong model tên "C" thì bỏ qua
+    obj.LocalTransparencyModifier = 0
+
 	if obj:FindFirstAncestor("C") then
 		return
 	end
 
-	-- xoá texture + decal
 	if obj:IsA("Texture") or obj:IsA("Decal") then
 		obj:Destroy()
 	end
 
-	-- xoá particle
 	if obj:IsA("ParticleEmitter")
 	or obj:IsA("Trail")
 	or obj:IsA("Smoke")
@@ -258,7 +185,16 @@ local function optimize(obj)
 		obj:Destroy()
 	end
 
-	-- tắt shadow + giảm material
+    if obj:IsA("MeshPart") then
+        obj.LocalTransparencyModifier = 1
+        obj.CastShadow = false
+        obj.CanCollide = false
+    end
+
+    if obj:IsA("SpecialMesh") then
+	    obj:Destroy()
+    end
+
 	if obj:IsA("BasePart") then
 		obj.CastShadow = false
 		obj.Material = Enum.Material.Plastic
@@ -287,14 +223,13 @@ local function hideFolder(folder)
 
 	for _,v in ipairs(folder:GetDescendants()) do
 
-		-- bỏ qua object có đường dẫn chứa "Stump"
 		if isInStumpPath(v) then
 			continue
 		end
 
 		if v:IsA("BasePart") then
-			v.Transparency = 1
-			v.CanCollide = false
+			v.LocalTransparencyModifier = 1
+            v.CanCollide = false
 		end
 
 	end
@@ -1107,6 +1042,32 @@ local function getTokensInRegion()
 
 end
 
+local function getNearestToken(tokens)
+
+	local character = player.Character
+	if not character then return nil end
+
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root then return nil end
+
+	local nearest = nil
+	local shortestDistance = math.huge
+
+	for _,token in ipairs(tokens) do
+
+		local distance = (root.Position - token.Position).Magnitude
+
+		if distance < shortestDistance then
+			shortestDistance = distance
+			nearest = token
+		end
+
+	end
+
+	return nearest
+
+end
+
 local function moveToToken(token)
 
 	local character = player.Character
@@ -1123,7 +1084,7 @@ local function moveToToken(token)
 		token.Position.Z
 	)
 
-	if (root.Position - target).Magnitude > 2 then
+	if (root.Position - target).Magnitude > 0 then
 		humanoid:MoveTo(target)
 	end
 
@@ -1240,8 +1201,14 @@ task.spawn(function()
 
         local tokens = getTokensInRegion()
 
-		if #tokens > 0 and tokens[1] and tokens[1].Parent and not pollenfull and not pollenconvert then
-	        moveToToken(tokens[1])
+		if #tokens > 0 and not pollenfull and not pollenconvert then
+
+	        local nearestToken = getNearestToken(tokens)
+
+	        if nearestToken and nearestToken.Parent then
+		        moveToToken(nearestToken)
+	        end
+
         end
 
         local text = getDisplayText()
@@ -1282,6 +1249,112 @@ task.spawn(function()
 end)
 
 -- \\ Tự Động Cày //
+
+
+-- // Tự Động Giữ Chuột \\
+
+local UIS = game:GetService("UserInputService")
+local VIM = game:GetService("VirtualInputManager")
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local holding = false
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoHoldMouseUI"
+gui.ResetOnSpawn = false
+gui.DisplayOrder = 999999
+gui.IgnoreGuiInset = true
+gui.Parent = playerGui
+
+local label = Instance.new("TextLabel")
+label.AnchorPoint = Vector2.new(0,1)
+label.Position = UDim2.new(0,5,1,-5)
+label.Size = UDim2.new(0,260,0,18)
+label.BackgroundTransparency = 1
+label.TextSize = 12
+label.Font = Enum.Font.SourceSans
+label.TextXAlignment = Enum.TextXAlignment.Left
+label.Parent = gui
+
+local function updateText()
+	if holding then
+		label.Text = "Tự Động Giữ Chuột Bật"
+		label.TextColor3 = Color3.fromRGB(0,255,0)
+	else
+		label.Text = "Tự Động Giữ Chuột Tắt"
+		label.TextColor3 = Color3.fromRGB(255,0,0)
+	end
+end
+
+updateText()
+
+UIS.InputBegan:Connect(function(input,gameProcessed)
+
+	if gameProcessed then return end
+
+	if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+
+		holding = not holding
+
+		if not holding then
+			VIM:SendMouseButtonEvent(0,0,0,false,game,0)
+		end
+
+		updateText()
+
+	end
+
+end)
+
+task.spawn(function()
+
+	while true do
+
+        if pollenconvert then
+            return
+        end
+
+		task.wait(0.2)
+
+		if holding then
+			VIM:SendMouseButtonEvent(0,0,0,true,game,0)
+		end
+
+	end
+
+end)
+
+-- \\ Tự Động Giữ Chuột //
+
+
+-- // Phóng Xa Màn Hình + Luôn Thấy Nhân Vật \\
+
+local player1 = game.Players.LocalPlayer
+local camera1 = workspace.CurrentCamera
+
+player1.CameraMinZoomDistance = 0.5
+player1.CameraMaxZoomDistance = 200
+camera1.CameraType = Enum.CameraType.Custom
+player1.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
+
+local RunService1 = game:GetService("RunService")
+
+RunService1.RenderStepped:Connect(function()
+
+	local character1 = player1.Character
+	if not character1 then return end
+	
+	local head1 = character:FindFirstChild("Head")
+	if not head1 then return end
+	
+	local origin1 = camera1.CFrame.Position
+	local direction1 = head1.Position - origin1
+	
+
+end)
+
+-- \\ Phóng Xa Màn Hình + Luôn Thấy Nhân Vật //
 
 
 -- // Ẩn/Hiện Bảng Đen \\
