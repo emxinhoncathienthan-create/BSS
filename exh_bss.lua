@@ -167,6 +167,9 @@ local hideFolders = {
 
 local function optimize(obj)
 
+    if obj:GetAttribute("Optimized") then return end
+    obj:SetAttribute("Optimized", true)
+
 	if obj:FindFirstAncestor("C") then
 		return
 	end
