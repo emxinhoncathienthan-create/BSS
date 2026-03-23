@@ -1,4 +1,3 @@
-﻿-- LocalScript
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
