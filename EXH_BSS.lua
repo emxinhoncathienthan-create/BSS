@@ -6,14 +6,12 @@ local Workspace = game:GetService("Workspace")
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- GUI
 local gui = Instance.new("ScreenGui")
 gui.DisplayOrder = 999999
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
 gui.Parent = playerGui
 
--- PANEL
 local frame = Instance.new("Frame")
 frame.AnchorPoint = Vector2.new(1,0)
 frame.Position = UDim2.new(1,0,0,0)
