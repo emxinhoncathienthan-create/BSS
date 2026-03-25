@@ -1260,7 +1260,8 @@ tdgc.MouseButton1Click:Connect(function()
 
 	holding = not holding
 
-	if holding and not pollenconvert then
+	if holding then
+		if pollenconvert then return end
 		VIM:SendMouseButtonEvent(0,0,0,true,game,0)
 		tdgc.BackgroundColor3 = Color3.fromRGB(0,170,0)
 	else
