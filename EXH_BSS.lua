@@ -1260,7 +1260,7 @@ tdgc.MouseButton1Click:Connect(function()
 
 	holding = not holding
 
-	if holding then
+	if holding and not pollenconvert then
 		VIM:SendMouseButtonEvent(0,0,0,true,game,0)
 		tdgc.BackgroundColor3 = Color3.fromRGB(0,170,0)
 	else
@@ -1273,6 +1273,8 @@ end)
 local pause = false
 
 UIS.InputEnded:Connect(function(input, gp)
+
+	if pollenconvert then return end
 
 	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and gp then return end
 
