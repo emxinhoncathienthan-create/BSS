@@ -127,7 +127,7 @@ local function claimHive()
 
 			hrphive.CFrame = CFrame.new(box.teleportPos)
 
-			task.wait(0.2)
+			task.wait(0.5)
 			pressE()
 
 			ntgn.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
@@ -144,7 +144,7 @@ local function claimHive()
 
 			local char = player.CharacterAdded:Wait()
 			updateChar(char)
-			task.wait(0.2)
+			task.wait(0.5)
 
 			local playerBox = findBoxWithPlayer()
 			if playerBox then
@@ -558,7 +558,7 @@ local function startFastRun()
 			if char then
 				local hum = char:FindFirstChildOfClass("Humanoid")
 				if hum then
-					hum.WalkSpeed = 90
+					hum.WalkSpeed = 120
 				end
 			end
 
@@ -899,11 +899,13 @@ local pollenfull = false
 local pollenconvert = false
 local currentTarget = nil
 
-local function createRegion(startPos,finishPos)
+local function createRegion(startPos, finishPos)
 
 	if regionPart then
 		regionPart:Destroy()
 	end
+
+	tokenList = {}
 
 	local min = Vector3.new(
 		math.min(startPos.X,finishPos.X),
@@ -960,28 +962,6 @@ local function createRegion(startPos,finishPos)
 
 end
 
-local function isInsideRegion(pos,startPos,finishPos)
-
-	local min = Vector3.new(
-		math.min(startPos.X,finishPos.X),
-		math.min(startPos.Y,finishPos.Y),
-		math.min(startPos.Z,finishPos.Z)
-	)
-
-	local max = Vector3.new(
-		math.max(startPos.X,finishPos.X),
-		math.max(startPos.Y,finishPos.Y),
-		math.max(startPos.Z,finishPos.Z)
-	)
-
-	return (
-		pos.X >= min.X and pos.X <= max.X and
-		pos.Y >= min.Y and pos.Y <= max.Y and
-		pos.Z >= min.Z and pos.Z <= max.Z
-	)
-
-end
-
 local function isPlayerInsideRegion(startPos, finishPos)
 
 	local character = player.Character
@@ -1028,43 +1008,61 @@ local function hasCInPath(obj)
 	return false
 
 end
+--//\\
+local tokenList = {}
 
-local function getTokensInRegion()
+local function updateTokens()
 
-	if not regionPart then
-		return {}
-	end
+	if not regionPart then return end
 
-	local tokens = {}
+	local found = {}
 
 	local parts = workspace:GetPartBoundsInBox(
 		regionPart.CFrame,
 		regionPart.Size
 	)
 
-	for _,part in ipairs(parts) do
+	-- quét token mới
+	for _, part in ipairs(parts) do
 
-        local current = part
-        local modelC = nil
+		local current = part
+		local modelC = nil
 
-        while current do
-            if current.Name == "C" then
-                modelC = current
-                break
-            end
-            current = current.Parent
-        end
+		while current do
+			if current.Name == "C" then
+				modelC = current
+				break
+			end
+			current = current.Parent
+		end
 
-        if modelC and not ignoredTokens[modelC] then
-            table.insert(tokens, part)
-        end
+		if modelC and not ignoredTokens[modelC] then
+			found[modelC] = part
 
-    end
+			-- nếu chưa có thì thêm
+			if not tokenList[modelC] then
+				tokenList[modelC] = part
+			end
+		end
+	end
 
-	return tokens
+	-- xóa token cũ không còn tồn tại
+	for modelC,_ in pairs(tokenList) do
+		if not found[modelC] then
+			tokenList[modelC] = nil
+		end
+	end
 
 end
 
+local function getFirstToken()
+	for _, part in pairs(tokenList) do
+		return part
+	end
+	return nil
+end
+--\\//
+--//\\
 local function moveToToken(token)
 
 	local character = player.Character
@@ -1081,12 +1079,12 @@ local function moveToToken(token)
 		token.Position.Z
 	)
 
-	if (root.Position - target).Magnitude > 0 then
+	if (root.Position - target).Magnitude > 3 then
 		humanoid:MoveTo(target)
 	end
 
 end
-
+--\\//
 local function getDisplayText()
 
 	local playerFolderPollen = workspace:FindFirstChild(player.Name)
@@ -1195,13 +1193,15 @@ task.spawn(function()
 	        	end
 	        end
         end
+		--//\\
+		updateTokens()
 
-        local tokens = getTokensInRegion()
+		local firstToken = getFirstToken()
 
-        if #tokens > 0 and not pollenfull and not pollenconvert then
-            moveToToken(tokens[1])
-        end
-
+		if firstToken and not pollenfull and not pollenconvert then
+			moveToToken(firstToken)
+		end
+		--\\//
         local text = getDisplayText()
 
 		local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
@@ -1308,7 +1308,7 @@ end)
 
 local p=game:GetService("Players").LocalPlayer
 p.CameraMaxZoomDistance = 150
-p.CameraMinZoomDistance = 2
+p.CameraMinZoomDistance = 0
 game:GetService("Players").LocalPlayer.DevCameraOcclusionMode=Enum.DevCameraOcclusionMode.Invisicam
 
 -- \\ Zoom gần-xa + luôn nhìn thấy nhân vật //
