@@ -898,6 +898,7 @@ local autoFarmRunning = false
 local pollenfull = false
 local pollenconvert = false
 local currentTarget = nil
+local tokenList = {}
 
 local function createRegion(startPos, finishPos)
 
@@ -1008,8 +1009,6 @@ local function hasCInPath(obj)
 	return false
 
 end
---//\\
-local tokenList = {}
 
 local function updateTokens()
 
@@ -1022,7 +1021,6 @@ local function updateTokens()
 		regionPart.Size
 	)
 
-	-- quét token mới
 	for _, part in ipairs(parts) do
 
 		local current = part
@@ -1046,7 +1044,6 @@ local function updateTokens()
 		end
 	end
 
-	-- xóa token cũ không còn tồn tại
 	for modelC,_ in pairs(tokenList) do
 		if not found[modelC] then
 			tokenList[modelC] = nil
@@ -1061,8 +1058,7 @@ local function getFirstToken()
 	end
 	return nil
 end
---\\//
---//\\
+
 local function moveToToken(token)
 
 	local character = player.Character
@@ -1084,7 +1080,7 @@ local function moveToToken(token)
 	end
 
 end
---\\//
+
 local function getDisplayText()
 
 	local playerFolderPollen = workspace:FindFirstChild(player.Name)
@@ -1193,7 +1189,7 @@ task.spawn(function()
 	        	end
 	        end
         end
-		--//\\
+
 		updateTokens()
 
 		local firstToken = getFirstToken()
@@ -1201,7 +1197,7 @@ task.spawn(function()
 		if firstToken and not pollenfull and not pollenconvert then
 			moveToToken(firstToken)
 		end
-		--\\//
+
         local text = getDisplayText()
 
 		local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
@@ -1306,11 +1302,21 @@ end)
 
 -- // Zoom gần-xa + luôn nhìn thấy nhân vật \\
 
-local p=game:GetService("Players").LocalPlayer
-p.CameraMaxZoomDistance = 150
-p.CameraMinZoomDistance = 0
-game:GetService("Players").LocalPlayer.DevCameraOcclusionMode=Enum.DevCameraOcclusionMode.Invisicam
+local Players = game:GetService("Players")
+local p = Players.LocalPlayer
 
+local function applyCamera()
+	p.CameraMaxZoomDistance = 150
+	p.CameraMinZoomDistance = 0
+	p.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
+end
+
+applyCamera()
+
+p.CharacterAdded:Connect(function()
+	task.wait(0.5)
+	applyCamera()
+end)
 -- \\ Zoom gần-xa + luôn nhìn thấy nhân vật //
 
 
