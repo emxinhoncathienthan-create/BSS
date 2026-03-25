@@ -558,7 +558,7 @@ local function startFastRun()
 			if char then
 				local hum = char:FindFirstChildOfClass("Humanoid")
 				if hum then
-					hum.WalkSpeed = 120
+					hum.WalkSpeed = 100
 				end
 			end
 
