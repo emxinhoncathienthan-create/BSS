@@ -1,1353 +1,243 @@
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
-
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
-local gui = Instance.new("ScreenGui")
-gui.DisplayOrder = 999999
-gui.IgnoreGuiInset = true
-gui.ResetOnSpawn = false
-gui.Parent = playerGui
-
-local frame = Instance.new("Frame")
-frame.AnchorPoint = Vector2.new(1,0)
-frame.Position = UDim2.new(1,0,0,0)
-frame.Size = UDim2.new(0,200,1,0)
-frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-frame.BorderSizePixel = 0
-frame.Parent = gui
-
-
+local UserInputService = game:GetService("UserInputService"); local Players = game:GetService("Players"); local RunService = game:GetService("RunService"); local player = Players.LocalPlayer; local playerGui = player:WaitForChild("PlayerGui")
+local screenGui = Instance.new("ScreenGui"); screenGui.ResetOnSpawn = false; screenGui.IgnoreGuiInset = true; screenGui.DisplayOrder = 999999; screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global; screenGui.Parent = playerGui
+local bangden = Instance.new("Frame"); bangden.AnchorPoint = Vector2.new(1, 0); bangden.Position = UDim2.new(1, 0, 0, 0); bangden.Size = UDim2.new(0, 200, 1, 0); bangden.BackgroundColor3 = Color3.new(0, 0, 0); bangden.BorderSizePixel = 0; bangden.Visible = true; bangden.Parent = screenGui
 -- // Nhận Tổ \\
-
-local vimhive = game:GetService("VirtualInputManager")
-
-local characterhive, hrphive
-local function updateChar(char)
-	characterhive = char
-	hrphive = char:WaitForChild("HumanoidRootPart")
-end
-
-updateChar(player.Character or player.CharacterAdded:Wait())
-player.CharacterAdded:Connect(updateChar)
-
-local ntgn = Instance.new("TextButton")
-ntgn.Size = UDim2.new(1,-10,0,30)
-ntgn.Position = UDim2.new(0,10,0,0)
-ntgn.Text = "Nhận Tổ (Nhận Rồi Cũng Ấn)"
-ntgn.TextSize = 11
-ntgn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-ntgn.TextColor3 = Color3.new(1,1,1)
-ntgn.Parent = frame
-
-local boxList = {
-    {
-        min = Vector3.new(15.6,-4.7,317.1),
-        max = Vector3.new(-21.4,18.1,347.4),
-        teleportPos = Vector3.new(-3.2,6.2,329.8)
-    },
-    {
-        min = Vector3.new(-21.8,-4.7,317.1),
-        max = Vector3.new(-58.6,18.1,347.4),
-        teleportPos = Vector3.new(-39.6,6.2,329.8)
-    },
-	{
-        min = Vector3.new(-57.8,-4.7,317.1),
-        max = Vector3.new(-95.2,18.1,347.4),
-        teleportPos = Vector3.new(-76.0,6.2,329.8)
-    },
-	{
-        min = Vector3.new(-94.6,-4.7,317.1),
-        max = Vector3.new(-131.4,18.1,347.4),
-        teleportPos = Vector3.new(-114.0,6.2,329.8)
-    },
-	{
-        min = Vector3.new(-130.8,-4.7,317.1),
-        max = Vector3.new(-167.8,18.1,347.4),
-        teleportPos = Vector3.new(-149.3,62,329.8)
-    },
-	{
-        min = Vector3.new(-167.3,-4.7,317.1),
-        max = Vector3.new(-204.9,18.1,347.4),
-        teleportPos = Vector3.new(-186.0,62,329.8)
-    }
-}
-
-local function isArrow(part)
-	return string.match(string.lower(part:GetFullName()), "localpatharrow")
-end
-
-local function findBoxWithArrow()
-	for _, box in ipairs(boxList) do
-		local center = (box.min + box.max) / 2
-		local size = box.max - box.min
-
-		for _, part in ipairs(workspace:GetPartBoundsInBox(CFrame.new(center), size)) do
-			if part:IsA("BasePart") and isArrow(part) then
-				return box
-			end
-		end
-	end
-	return nil
-end
-
-local function findBoxWithPlayer()
-	for _, box in ipairs(boxList) do
-		local center = (box.min + box.max) / 2
-		local size = box.max - box.min
-
-		for _, part in ipairs(workspace:GetPartBoundsInBox(CFrame.new(center), size)) do
-			local model = part:FindFirstAncestorOfClass("Model")
-			if model and game.Players:GetPlayerFromCharacter(model) then
-				return box
-			end
-		end
-	end
-	return nil
-end
-
-local function pressE()
-	vimhive:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-	vimhive:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-end
-
-local usedhive = false
-local savedPositionHive = nil
-
-local function claimHive()
-
-	if not usedhive then
-
-		local box = findBoxWithArrow()
-
-		if box then
-
-			hrphive.CFrame = CFrame.new(box.teleportPos)
-
-			task.wait(0.5)
-			pressE()
-
-			ntgn.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
-            ntgn.BackgroundColor3 = Color3.fromRGB(204,204,0)
-
-			usedhive = true
-
-		else
-
-			local humanoid = characterhive:FindFirstChild("Humanoid")
-			if humanoid then
-				humanoid.Health = 0
-			end
-
-			local char = player.CharacterAdded:Wait()
-			updateChar(char)
-			task.wait(0.5)
-
-			local playerBox = findBoxWithPlayer()
-			if playerBox then
-				hrphive.CFrame = CFrame.new(playerBox.teleportPos)
-			end
-
-			ntgn.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"
-            ntgn.BackgroundColor3 = Color3.fromRGB(204,204,0)
-
-			usedhive = true
-
-		end
-
-		savedPositionHive = hrphive.Position
-
-	else
-		hrphive.CFrame = CFrame.new(savedPositionHive)
-	end
-
-end
-
-ntgn.MouseButton1Click:Connect(claimHive)
-
+local vimhive = game:GetService("VirtualInputManager"); local characterhive, hrphive, humanoid; local function updateChar(char) characterhive = char; hrphive = char:WaitForChild("HumanoidRootPart"); humanoid = char:WaitForChild("Humanoid") end; updateChar(player.Character or player.CharacterAdded:Wait()); player.CharacterAdded:Connect(updateChar); local ntgn = Instance.new("TextButton"); ntgn.Size = UDim2.new(1,0,0,-30); ntgn.Position = UDim2.new(0,0,0,30); ntgn.Text = "Nhận Tổ (Nhận Rồi Cũng Ấn)"; ntgn.TextSize = 11; ntgn.BackgroundColor3 = Color3.fromRGB(170,0,0); ntgn.TextColor3 = Color3.new(1,1,1); ntgn.Parent = bangden; local boxList = { { min = Vector3.new(-167.3,-2,317.1), max = Vector3.new(-204.9,18,347.4), teleportPos = Vector3.new(-186.5,6.2,331.1) }, { min = Vector3.new(-130.8,-2,317.1), max = Vector3.new(-167.8,18,347.4), teleportPos = Vector3.new(-149.9,6.2,331.1) }, { min = Vector3.new(-94.6,-2,317.1), max = Vector3.new(-131.4,18,347.4), teleportPos = Vector3.new(-113.3,6.2,331.1) }, { min = Vector3.new(-57.8,-2,317.1), max = Vector3.new(-95.2,18,347.4), teleportPos = Vector3.new(-76.7,6.2,331.1) }, { min = Vector3.new(-21.8,-2,317.1), max = Vector3.new(-58.6,18,347.4), teleportPos = Vector3.new(-40.1,6.2,331.1) }, { min = Vector3.new(15.6,-2,317.1), max = Vector3.new(-21.4,18,347.4), teleportPos = Vector3.new(-3.5,6.2,331.1) } }; local function isArrow(part) return string.match(string.lower(part:GetFullName()), "localpatharrow") end; local function findBoxWithArrow() for i=1,#boxList do local box=boxList[i]; local center=(box.min+box.max)/2; local size=box.max-box.min; for _,part in ipairs(workspace:GetPartBoundsInBox(CFrame.new(center),size)) do if part:IsA("BasePart") and isArrow(part) then return box end end end return nil end; local function findBoxWithPlayer() for _,box in ipairs(boxList) do local center=(box.min+box.max)/2; local size=box.max-box.min; for _,part in ipairs(workspace:GetPartBoundsInBox(CFrame.new(center),size)) do local gui=part:FindFirstAncestorWhichIsA("BillboardGui") or part:FindFirstAncestorWhichIsA("SurfaceGui"); if gui then for _,v in ipairs(gui:GetDescendants()) do if v:IsA("TextLabel") and v.Text==player.Name then return box end end end end end return nil end; local function pressE() vimhive:SendKeyEvent(true, Enum.KeyCode.E, false, game); vimhive:SendKeyEvent(false, Enum.KeyCode.E, false, game) end; local usedhive = false; local savedPositionHive = nil; local function claimHive() if not usedhive then local box = findBoxWithArrow(); if box then hrphive.CFrame = CFrame.new(box.teleportPos); task.wait(0.5); pressE(); ntgn.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"; ntgn.BackgroundColor3 = Color3.fromRGB(204,204,0); usedhive = true else local humanoid = characterhive:FindFirstChild("Humanoid"); if humanoid then humanoid.Health = 0 end; local char = player.CharacterAdded:Wait(); updateChar(char); task.wait(0.5); local playerBox = findBoxWithPlayer(); if playerBox then hrphive.CFrame = CFrame.new(playerBox.teleportPos) end; ntgn.Text = "Đã Nhận Tổ (Nhấn Để Trở Về)"; ntgn.BackgroundColor3 = Color3.fromRGB(204,204,0); usedhive = true end; savedPositionHive = hrphive.Position else hrphive.CFrame = CFrame.new(savedPositionHive) end end; ntgn.MouseButton1Click:Connect(claimHive)
 -- \\ Nhận Tổ //
-
-
 -- // Giảm Đồ Hoạ \\
-
-local gdh = Instance.new("TextButton")
-gdh.Size = UDim2.new(1,-10,0,30)
-gdh.Position = UDim2.new(0,10,0,30)
-gdh.Text = "Giảm Đồ Hoạ"
-gdh.TextSize = 11
-gdh.BackgroundColor3 = Color3.fromRGB(170,0,0)
-gdh.TextColor3 = Color3.new(1,1,1)
-gdh.Parent = frame
-
-local enabled = false
-
-local hideFolders = {
-	"Leaderboards",
-	"Decorations",
-	"FieldDecos",
-	"HiveDeco",
-	"Badge Guild",
-	"Gates"
-}
-
-local function optimize(obj)
-
-	-- nếu object nằm trong model tên "C" thì bỏ qua
-	if obj:FindFirstAncestor("C") then
-		return
-	end
-
-	-- xoá texture + decal
-	if obj:IsA("Texture") or obj:IsA("Decal") then
-		obj:Destroy()
-	end
-
-	-- xoá particle
-	if obj:IsA("ParticleEmitter")
-	or obj:IsA("Trail")
-	or obj:IsA("Smoke")
-	or obj:IsA("Fire")
-	or obj:IsA("Sparkles") then
-		obj:Destroy()
-	end
-
-	-- tắt shadow + giảm material
-	if obj:IsA("BasePart") then
-		obj.CastShadow = false
-		obj.Material = Enum.Material.Plastic
-		obj.Reflectance = 0
-	end
-
-end
-
-local function isInStumpPath(obj)
-
-	local current = obj
-
-	while current do
-		if string.find(current.Name, "Stump") then
-			return true
-		end
-		current = current.Parent
-	end
-
-	return false
-end
-
-local function hideFolder(folder)
-
-	if not folder then return end
-
-	for _,v in ipairs(folder:GetDescendants()) do
-
-		-- bỏ qua object có đường dẫn chứa "Stump"
-		if isInStumpPath(v) then
-			continue
-		end
-
-		if v:IsA("BasePart") then
-			v.Transparency = 1
-			v.CanCollide = false
-		end
-
-	end
-
-end
-
-local function reduceLighting()
-
-	for _,v in ipairs(Lighting:GetChildren()) do
-		v:Destroy()
-	end
-
-	Lighting.GlobalShadows = false
-	Lighting.Technology = Enum.Technology.Compatibility
-
-end
-
-local function applyLowGraphics()
-
-	reduceLighting()
-
-	for _,v in ipairs(Workspace:GetDescendants()) do
-		optimize(v)
-	end
-
-	for _,name in ipairs(hideFolders) do
-		hideFolder(Workspace:FindFirstChild(name))
-	end
-
-end
-
-Workspace.DescendantAdded:Connect(function(obj)
-
-	if enabled then
-		optimize(obj)
-	end
-
-end)
-
-gdh.MouseButton1Click:Connect(function()
-
-	if not enabled then
-		gdh.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		applyLowGraphics()
-        enabled = true
-	end
-
-end)
-
+local Lighting = game:GetService("Lighting"); local Workspace = game:GetService("Workspace"); local gdh = Instance.new("TextButton"); gdh.Size = UDim2.new(1, 0, 0, -30); gdh.Position = UDim2.new(0, 0, 0, 60); gdh.Text = "Giảm Đồ Hoạ"; gdh.TextSize = 11;  gdh.BackgroundColor3 = Color3.fromRGB(170,0,0);  gdh.TextColor3 = Color3.new(1,1,1); gdh.Parent = bangden; local enabled = false; local whitelist = { workspace:FindFirstChild("Decorations") and workspace.Decorations:FindFirstChild("Stump"), workspace:FindFirstChild("Decorations") and workspace.Decorations:FindFirstChild("30BeeZone") }; local deleteDescendants = { workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Fences"), workspace:FindFirstChild("Decorations"), workspace:FindFirstChild("FieldDecos"), workspace:FindFirstChild("Invisible Walls"), workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("OuterInvisWalls"), workspace:FindFirstChild("Model"), workspace:FindFirstChild("HiveDeco"), workspace:FindFirstChild("SpiderWeb") }; local deleteExact = { workspace:FindFirstChild("Gates") }; local whitelistSet = {}; local function buildWhitelist() for _, obj in ipairs(whitelist) do if obj then whitelistSet[obj] = true; for _, v in ipairs(obj:GetDescendants()) do whitelistSet[v] = true end end end end; local function isWhitelisted(obj) return whitelistSet[obj] == true end; local function deleteDesc(obj) if not obj then return end; for _, v in ipairs(obj:GetDescendants()) do if not isWhitelisted(v) then pcall(function() v:Destroy() end) end end end; local function deleteSelf(obj) if obj and not isWhitelisted(obj) then pcall(function() obj:Destroy() end) end end; local function optimize(obj) if obj:FindFirstAncestor("C") then return end; if obj:IsA("Texture") or obj:IsA("Decal") then obj:Destroy() end; if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then obj:Destroy() end; if obj:IsA("BasePart") then obj.CastShadow = false; obj.Material = Enum.Material.Plastic; obj.Reflectance = 0 end end; local function reduceLighting() for _,v in ipairs(Lighting:GetChildren()) do v:Destroy() end; Lighting.GlobalShadows = false; Lighting.Technology = Enum.Technology.Compatibility end; local function applyLowGraphics() reduceLighting(); for _,v in ipairs(Workspace:GetDescendants()) do optimize(v) end end; Workspace.DescendantAdded:Connect(function(obj) if enabled then optimize(obj) end end); gdh.MouseButton1Click:Connect(function() if not enabled then gdh.BackgroundColor3 = Color3.fromRGB(50,50,50); applyLowGraphics(); buildWhitelist(); for _, obj in ipairs(deleteDescendants) do deleteDesc(obj) end; for _, obj in ipairs(deleteExact) do deleteSelf(obj) end; enabled = true end end)
 -- \\ Giảm Đồ Hoạ //
-
-
--- // Bay \\ 
-
-local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(1,-10,0,30)
-flyButton.Position = UDim2.new(0,10,0,60)
-flyButton.Text = "Bay"
-flyButton.TextSize = 11
-flyButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-flyButton.TextColor3 = Color3.new(1,1,1)
-flyButton.Parent = frame
-
-local RunService = game:GetService("RunService")
-
-local flying = false
-local speed = 90
-
-local bv
-local bg
-local connection
-
-local function startFly(character)
-
-	local humanoid = character:WaitForChild("Humanoid")
-	local hrp = character:WaitForChild("HumanoidRootPart")
-
-	humanoid.PlatformStand = true
-
-	bv = Instance.new("BodyVelocity")
-	bv.MaxForce = Vector3.new(1e6,1e6,1e6)
-	bv.Velocity = Vector3.zero
-	bv.Parent = hrp
-
-	bg = Instance.new("BodyGyro")
-	bg.MaxTorque = Vector3.new(1e6,1e6,1e6)
-	bg.P = 10000
-	bg.CFrame = hrp.CFrame
-	bg.Parent = hrp
-
-	connection = RunService.RenderStepped:Connect(function()
-
-		local cam = workspace.CurrentCamera
-		local move = Vector3.zero
-
-		if UIS:IsKeyDown(Enum.KeyCode.W) then
-			move += cam.CFrame.LookVector
-		end
-
-		if UIS:IsKeyDown(Enum.KeyCode.S) then
-			move -= cam.CFrame.LookVector
-		end
-
-		if UIS:IsKeyDown(Enum.KeyCode.A) then
-			move -= cam.CFrame.RightVector
-		end
-
-		if UIS:IsKeyDown(Enum.KeyCode.D) then
-			move += cam.CFrame.RightVector
-		end
-
-		if UIS:IsKeyDown(Enum.KeyCode.Space) then
-			move += Vector3.new(0,1,0)
-		end
-
-		if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
-			move -= Vector3.new(0,1,0)
-		end
-
-		if move.Magnitude > 0 then
-			bv.Velocity = move.Unit * speed
-		else
-			bv.Velocity = Vector3.zero
-		end
-
-		bg.CFrame = cam.CFrame
-
-	end)
-
-end
-
-local function stopFly(character)
-
-	if connection then
-		connection:Disconnect()
-		connection = nil
-	end
-
-	if bv then
-		bv:Destroy()
-		bv = nil
-	end
-
-	if bg then
-		bg:Destroy()
-		bg = nil
-	end
-
-	if character then
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		local hrp = character:FindFirstChild("HumanoidRootPart")
-
-		if humanoid then
-			humanoid.PlatformStand = false
-			humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-
-			-- khôi phục di chuyển
-			humanoid.WalkSpeed = 40
-			humanoid.JumpPower = 80
-		end
-
-		if hrp then
-			hrp.Velocity = Vector3.zero
-			hrp.RotVelocity = Vector3.zero
-		end
-	end
-
-end
-
-flyButton.MouseButton1Click:Connect(function()
-
-	flying = not flying
-
-	local character = player.Character or player.CharacterAdded:Wait()
-
-	if flying then
-		flyButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		startFly(character)
-	else
-		flyButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-		stopFly(character)
-	end
-
-end)
-
-player.CharacterAdded:Connect(function(character)
-
-	if flying then
-		task.wait(0.1)
-		startFly(character)
-	end
-
-end)
-
+-- // Bay \\
+local bay = Instance.new("TextButton"); bay.Size = UDim2.new(1, 0, 0, -30); bay.Position = UDim2.new(0, 0, 0, 90); bay.Text = "Bay"; bay.TextSize = 11 ; bay.TextColor3 = Color3.new(1,1,1); bay.BackgroundColor3 = Color3.fromRGB(170,0,0); bay.Parent = bangden; local flying = false; local bodyVel, bodyGyro, conn; local speed = 90; local move = { W=false, A=false, S=false, D=false, Up=false, Down=false }; UserInputService.InputBegan:Connect(function(input, gp) if gp then return end; if input.KeyCode == Enum.KeyCode.W then move.W = true end; if input.KeyCode == Enum.KeyCode.A then move.A = true end; if input.KeyCode == Enum.KeyCode.S then move.S = true end; if input.KeyCode == Enum.KeyCode.D then move.D = true end; if input.KeyCode == Enum.KeyCode.Space then move.Up = true end; if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then move.Down = true end end); UserInputService.InputEnded:Connect(function(input) if input.KeyCode == Enum.KeyCode.W then move.W = false end; if input.KeyCode == Enum.KeyCode.A then move.A = false end; if input.KeyCode == Enum.KeyCode.S then move.S = false end; if input.KeyCode == Enum.KeyCode.D then move.D = false end; if input.KeyCode == Enum.KeyCode.Space then move.Up = false end; if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then move.Down = false end end); local function startFly() local char = player.Character or player.CharacterAdded:Wait(); local hrp = char:WaitForChild("HumanoidRootPart"); bodyVel = Instance.new("BodyVelocity"); bodyVel.MaxForce = Vector3.new(1e5,1e5,1e5); bodyVel.Velocity = Vector3.zero; bodyVel.Parent = hrp; bodyGyro = Instance.new("BodyGyro"); bodyGyro.MaxTorque = Vector3.new(1e5,1e5,1e5); bodyGyro.CFrame = hrp.CFrame; bodyGyro.Parent = hrp; conn = RunService.RenderStepped:Connect(function() local cam = workspace.CurrentCamera; local dir = Vector3.zero; if move.W then dir += cam.CFrame.LookVector end; if move.S then dir -= cam.CFrame.LookVector end; if move.A then dir -= cam.CFrame.RightVector end; if move.D then dir += cam.CFrame.RightVector end; if move.Up then dir += Vector3.new(0,1,0) end; if move.Down then dir -= Vector3.new(0,1,0) end; if dir.Magnitude > 0 then dir = dir.Unit * speed end; bodyVel.Velocity = dir; bodyGyro.CFrame = cam.CFrame end) end; local function stopFly() if conn then conn:Disconnect() conn = nil end; if bodyVel then bodyVel:Destroy() bodyVel = nil end; if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end end; bay.MouseButton1Click:Connect(function() flying = not flying; if flying then bay.BackgroundColor3 = Color3.fromRGB(0,170,0); startFly() else bay.BackgroundColor3 = Color3.fromRGB(170,0,0); stopFly() end end)
 -- \\ Bay //
-
-
 -- // Xuyên Tường \\
-
-local noclipButton = Instance.new("TextButton")
-noclipButton.Size = UDim2.new(1,-10,0,30)
-noclipButton.Position = UDim2.new(0,10,0,90)
-noclipButton.Text = "Xuyên Tường"
-noclipButton.TextSize = 11
-noclipButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-noclipButton.TextColor3 = Color3.new(1,1,1)
-noclipButton.Parent = frame
-
-local noclip = false
-local noclipLoop
-
-local function startNoclip()
-
-	if noclipLoop then return end
-
-	noclipLoop = task.spawn(function()
-
-		while noclip do
-
-			local char = player.Character
-			if char then
-
-				for _,v in ipairs(char:GetDescendants()) do
-					if v:IsA("BasePart") then
-						v.CanCollide = false
-					end
-				end
-
-			end
-
-			task.wait(0.2)
-
-		end
-
-	end)
-
-end
-
-local function stopNoclip()
-
-	noclip = false
-
-	local char = player.Character
-	if char then
-		for _,v in ipairs(char:GetDescendants()) do
-			if v:IsA("BasePart") then
-				v.CanCollide = true
-			end
-		end
-	end
-
-	noclipLoop = nil
-
-end
-
-noclipButton.MouseButton1Click:Connect(function()
-
-	noclip = not noclip
-
-	if noclip then
-		noclipButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		startNoclip()
-	else
-		noclipButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-		stopNoclip()
-	end
-
-end)
-
-player.CharacterAdded:Connect(function()
-
-	if noclip then
-		task.wait(0.1)
-		startNoclip()
-	end
-
-end)
-
+local xt = Instance.new("TextButton"); xt.Size = UDim2.new(1, 0, 0, -30); xt.Position = UDim2.new(0, 0, 0, 120); xt.Text = "Xuyên Tường"; xt.TextSize = 11; xt.BackgroundColor3 = Color3.fromRGB(170,0,0); xt.TextColor3 = Color3.new(1,1,1); xt.Parent = bangden; local noclip = false; local function setNoclip(state) local char = player.Character; if not char then return end; for _, v in pairs(char:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = not state end end end; xt.MouseButton1Click:Connect(function() noclip = not noclip; xt.BackgroundColor3 = noclip and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0) end); RunService.Stepped:Connect(function() if noclip then setNoclip(true) end end)
 -- \\ Xuyên Tường //
-
-
--- // Chạy Nhanh \\
-
-local speedButton = Instance.new("TextButton")
-speedButton.Size = UDim2.new(1,-10,0,30)
-speedButton.Position = UDim2.new(0,10,0,120)
-speedButton.Text = "Chạy Nhanh"
-speedButton.TextSize = 11
-speedButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-speedButton.TextColor3 = Color3.new(1,1,1)
-speedButton.Parent = frame
-
-local fastRun = false
-local speedLoop
-
-local function startFastRun()
-
-	if speedLoop then return end
-
-	speedLoop = task.spawn(function()
-
-		while fastRun do
-
-			local char = player.Character
-			if char then
-				local hum = char:FindFirstChildOfClass("Humanoid")
-				if hum then
-					hum.WalkSpeed = 100
-				end
-			end
-
-			task.wait(0.2)
-
-		end
-
-	end)
-
-end
-
-local function stopFastRun()
-
-	fastRun = false
-
-	local char = player.Character
-	if char then
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum then
-			hum.WalkSpeed = 40
-		end
-	end
-
-	speedLoop = nil
-
-end
-
-speedButton.MouseButton1Click:Connect(function()
-
-	fastRun = not fastRun
-
-	if fastRun then
-		speedButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		startFastRun()
-	else
-		speedButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-		stopFastRun()
-	end
-
-end)
-
--- \\ Chạy Nhanh //
-
-
--- // Nhảy Cao \\
-
-local jumpButton = Instance.new("TextButton")
-jumpButton.Size = UDim2.new(1,-10,0,30)
-jumpButton.Position = UDim2.new(0,10,0,150)
-jumpButton.Text = "Nhảy Cao"
-jumpButton.TextSize = 11
-jumpButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-jumpButton.TextColor3 = Color3.new(1,1,1)
-jumpButton.Parent = frame
-
-local highJump = false
-local jumpLoop
-
-local function startHighJump()
-
-	if jumpLoop then return end
-
-	jumpLoop = task.spawn(function()
-
-		while highJump do
-
-			local char = player.Character
-			if char then
-				local hum = char:FindFirstChildOfClass("Humanoid")
-				if hum then
-					hum.JumpPower = 60 + 80
-				end
-			end
-
-			task.wait(0.2)
-
-		end
-
-	end)
-
-end
-
-local function stopHighJump()
-
-	highJump = false
-
-	local char = player.Character
-	if char then
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum then
-			hum.JumpPower = 80
-		end
-	end
-
-	jumpLoop = nil
-
-end
-
-jumpButton.MouseButton1Click:Connect(function()
-
-	highJump = not highJump
-
-	if highJump then
-		jumpButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		startHighJump()
-	else
-		jumpButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-		stopHighJump()
-	end
-
-end)
-
--- \\ Nhảy Cao //
-
-
+-- // Tốc Độ \\
+local speedBtn = Instance.new("TextButton"); speedBtn.Size = UDim2.new(0.6, 0, 0, -30); speedBtn.Position = UDim2.new(0, 0, 0, 150); speedBtn.Text = "Tốc Độ"; speedBtn.TextSize = 11; speedBtn.BackgroundColor3 = Color3.fromRGB(170,0,0); speedBtn.TextColor3 = Color3.new(1,1,1); speedBtn.Parent = bangden; local speedBox = Instance.new("TextBox"); speedBox.Size = UDim2.new(0.4, 0, 0, -30); speedBox.Position = UDim2.new(0.6, 0, 0, 150); speedBox.PlaceholderText = "0-140"; speedBox.Text = ""; speedBox.TextSize = 11; speedBox.Parent = bangden; local function setupNumberBox(box) box:GetPropertyChangedSignal("Text"):Connect(function() box.Text = box.Text:gsub("%D", ""); local num = tonumber(box.Text); if num then if num > 140 then box.Text = "140" end end end) end; local speedOn = false; local defaultSpeed = 50; local function getSpeed() local n = tonumber(speedBox.Text); if not n then return 0 end; return math.clamp(n, 0, 140) end; local speedLoop; local function startFastRun() setupNumberBox(speedBox); if speedLoop then return end; speedLoop = task.spawn(function() while speedOn do humanoid.WalkSpeed = getSpeed(); task.wait(0.2) end end) end; speedBtn.MouseButton1Click:Connect(function() speedOn = not speedOn; if speedOn then startFastRun(); speedBtn.BackgroundColor3 = Color3.fromRGB(0,170,0) else speedLoop = nil; humanoid.WalkSpeed = defaultSpeed; speedBtn.BackgroundColor3 = Color3.fromRGB(170,0,0) end end)
+-- \\ Tốc độ //
+-- // Sức Bật \\
+local jumpBtn = Instance.new("TextButton"); jumpBtn.Size = UDim2.new(0.6, 0, 0, -30); jumpBtn.Position = UDim2.new(0, 0, 0, 180); jumpBtn.Text = "Sức Bật"; jumpBtn.TextSize = 11; jumpBtn.BackgroundColor3 = Color3.fromRGB(170,0,0); jumpBtn.TextColor3 = Color3.new(1,1,1); jumpBtn.Parent = bangden; local jumpBox = Instance.new("TextBox"); jumpBox.Size = UDim2.new(0.4, 0, 0, -30); jumpBox.Position = UDim2.new(0.6, 0, 0, 180); jumpBox.PlaceholderText = "0-140"; jumpBox.Text = ""; jumpBox.TextSize = 11; jumpBox.Parent = bangden; local jumpOn = false; local defaultJump = 70; local function getJump() local n = tonumber(jumpBox.Text); if not n then return 0 end; return math.clamp(n, 0, 140) end; setupNumberBox(jumpBox); local jumpLoop; local function startJump() if jumpLoop then return end; jumpLoop = task.spawn(function() while jumpOn do humanoid.JumpPower = getJump(); task.wait(0.2); end end) end; jumpBtn.MouseButton1Click:Connect(function() jumpOn = not jumpOn; if jumpOn then startJump(); jumpBtn.BackgroundColor3 = Color3.fromRGB(0,170,0); else jumpLoop = nil; humanoid.JumpPower = defaultJump; jumpBtn.BackgroundColor3 = Color3.fromRGB(170,0,0); end end)
+-- \\ Sức Bật //
 -- // Trở Về Điểm Hồi Sinh \\
-
-local spawnButton = Instance.new("TextButton")
-spawnButton.Size = UDim2.new(1,-10,0,30)
-spawnButton.Position = UDim2.new(0,10,0,180)
-spawnButton.Text = "Trở Về Điểm Hồi Sinh"
-spawnButton.TextSize = 11
-spawnButton.BackgroundColor3 = Color3.fromRGB(80,80,200)
-spawnButton.TextColor3 = Color3.new(1,1,1)
-spawnButton.Parent = frame
-
-spawnButton.MouseButton1Click:Connect(function()
-
-	local char = player.Character
-	if not char then return end
-
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
-
-	if spawn then
-		hrp.CFrame = spawn.CFrame + Vector3.new(0,5,0)
-	end
-
-end)
-
+local spawnButton = Instance.new("TextButton"); spawnButton.Size = UDim2.new(1,0,0,-30); spawnButton.Position = UDim2.new(0,0,0,210); spawnButton.Text = "Trở Về Điểm Hồi Sinh"; spawnButton.TextSize = 11; spawnButton.BackgroundColor3 = Color3.fromRGB(80,80,200); spawnButton.TextColor3 = Color3.new(1,1,1); spawnButton.Parent = bangden; spawnButton.MouseButton1Click:Connect(function() local char = player.Character; if not char then return end; local hrp = char:FindFirstChild("HumanoidRootPart"); if not hrp then return end; local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation"); if spawn then hrp.CFrame = spawn.CFrame + Vector3.new(0,5,0) end end)
 -- \\ Trở Về Điểm Hồi Sinh //
-
-
 -- // Tự Động Cày \\
+local autoFarmBtn = Instance.new("TextButton"); autoFarmBtn.Size = UDim2.new(0.5,0,0,-30); autoFarmBtn.Position = UDim2.new(0,0,0,240); autoFarmBtn.Text = "Tự Động Cày"; autoFarmBtn.TextSize = 11; autoFarmBtn.BackgroundColor3 = Color3.fromRGB(170,0,0); autoFarmBtn.TextColor3 = Color3.new(1,1,1); autoFarmBtn.Parent = bangden; 
+local modeBtn = Instance.new("TextButton"); modeBtn.Size = UDim2.new(0.5,0,0,-30); modeBtn.Position = UDim2.new(0.5,0,0,240); modeBtn.Text = "Dịch Chuyển"; modeBtn.TextSize = 11; modeBtn.BackgroundColor3 = Color3.fromRGB(170,0,0); modeBtn.TextColor3 = Color3.new(1,1,1); modeBtn.Parent = bangden; 
+modeBtn.MouseButton1Click:Connect(function() useLerp = not useLerp; if useLerp then modeBtn.BackgroundColor3 = Color3.fromRGB(0,170,0) else modeBtn.BackgroundColor3 = Color3.fromRGB(170,0,0) end end); 
+local autoFarmUI = Instance.new("Frame"); autoFarmUI.Size = UDim2.new(0,200,1,0); autoFarmUI.AnchorPoint = Vector2.new(1,0); autoFarmUI.Position = UDim2.new(1, -200, 0, 0); autoFarmUI.BackgroundColor3 = Color3.new(0,0,0); autoFarmUI.Visible = false; autoFarmUI.Parent = screenGui; 
 
-local autoFarmButton = Instance.new("TextButton")
-autoFarmButton.Size = UDim2.new(1,-10,0,30)
-autoFarmButton.Position = UDim2.new(0,10,0,210)
-autoFarmButton.Text = "Tự Động Cày"
-autoFarmButton.TextSize = 11
-autoFarmButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-autoFarmButton.TextColor3 = Color3.new(1,1,1)
-autoFarmButton.Parent = frame
+local activeButton = nil
+local fieldConnection = nil
+local autoFarmEnabled = false
+local currentField = nil
+local targetList = {}
 
-local autoFarmFrame = Instance.new("Frame")
-autoFarmFrame.AnchorPoint = Vector2.new(1,0)
-autoFarmFrame.Position = UDim2.new(1,-200,0,0)
-autoFarmFrame.Size = UDim2.new(0,200,1,0)
-autoFarmFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-autoFarmFrame.BorderSizePixel = 0
-autoFarmFrame.Visible = false
-autoFarmFrame.Parent = gui
+local fields = { { name = "Sunflower Field (Zone 0)", min = Vector3.new(-256,0,244), max = Vector3.new(-168,7,104) }, { name = "Dandelion Field (Zone 0)", min = Vector3.new(-108,0,260), max = Vector3.new(44,7,180) }, { name = "Mushroom Field (Zone 0)", min = Vector3.new(-160,0,160), max = Vector3.new(-24,7,60) }, { name = "Blue Flower Field (Zone 0)", min = Vector3.new(56,0,136), max = Vector3.new(236,7,60) }, { name = "Clover Field (Zone 0)", min = Vector3.new(100,30,256), max = Vector3.new(212,37,132) }, { name = "Strawberry Field (Zone 5)", min = Vector3.new(-226,17,44), max = Vector3.new(-132,24,-68) }, { name = "Bamboo Field (Zone 5)", min = Vector3.new(48,17,12), max = Vector3.new(212,24,-68) }, { name = "Spider Field (Zone 5)", min = Vector3.new(-104,17,40), max = Vector3.new(16,24,-68) }, { name = "Pineapple Patch (Zone 10)", min = Vector3.new(184,65,-160), max = Vector3.new(324,72,-260) }, { name = "Stump Field (Zone 10)", min = Vector3.new(368,93,-116), max = Vector3.new(476,100,-232) }, { name = "Cactus Field (Zone 15)", min = Vector3.new(-260,65,-64), max = Vector3.new(-120,72,-144) }, { name = "Pumpkin Patch (Zone 15)", min = Vector3.new(-260,65,-148), max = Vector3.new(-120,72,-224) }, { name = "Pine Tree Forest (Zone 15)", min = Vector3.new(-380,65,-124), max = Vector3.new(-280,72,-256) }, { name = "Rose Field (Zone 15)", min = Vector3.new(-396,17,172), max = Vector3.new(-264,24,84) }, { name = "Hub Field (Zone 20)", min = Vector3.new(-64,-1,-10064), max = Vector3.new(60,6,-9940) }, { name = "Moutain Top Field (Zone 30)", min = Vector3.new(24,173,-108), max = Vector3.new(128,180,-228) }, { name = "Coconut Field (Zone 35)", min = Vector3.new(-320,67,512), max = Vector3.new(-192,74,420) }, { name = "Pepper Patch (Zone 35)", min = Vector3.new(-536,120,592), max = Vector3.new(-444,127,476) } }
 
-local fields = {
-"Sunflower Field (Zone 0)",
-"Dandelion Field (Zone 0)",
-"Mushroom Field (Zone 0)",
-"Blue Flower Field (Zone 0)",
-"Clover Field (Zone 0)",
-"Strawberry Field (Zone 5)",
-"Bamboo Field (Zone 5)",
-"Spider Field (Zone 5)",
-"Pineapple Patch (Zone 10)",
-"Stump Field (Zone 10)",
-"Cactus Field (Zone 15)",
-"Pumpkin Patch (Zone 15)",
-"Pine Tree Forest (Zone 15)",
-"Rose Field (Zone 15)",
-"Hub Field (Zone 20)",
-"Moutain Top Field (Zone 30)",
-"Coconut Field (Zone 35)",
-"Pepper Patch (Zone 35)"
-}
-
-local activeFieldButton = nil
-local fieldButtons = {}
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,1)
-layout.Parent = autoFarmFrame
-
-local autoFarmVisible = false
-local tudongcay = false
-
-local ignoredTokens = {}
-
-local fieldData = {
-
-["Sunflower Field (Zone 0)"] = {
-start = Vector3.new(-256,0,244),
-finish = Vector3.new(-168,7,104),
-tp = Vector3.new(-210, 4, 174)
-},
-
-["Dandelion Field (Zone 0)"] = {
-start = Vector3.new(-108,0,260),
-finish = Vector3.new(44,7,180),
-tp = Vector3.new(-34, 4, 222)
-},
-
-["Mushroom Field (Zone 0)"] = {
-start = Vector3.new(-160,0,160),
-finish = Vector3.new(-24,7,60),
-tp = Vector3.new(-102, 4, 114)
-},
-
-["Blue Flower Field (Zone 0)"] = {
-start = Vector3.new(56,0,136),
-finish = Vector3.new(236,7,60),
-tp = Vector3.new(146,4,98)
-},
-
-["Clover Field (Zone 0)"] = {
-start = Vector3.new(100,30,256),
-finish = Vector3.new(212,37,132),
-tp = Vector3.new(154,34,192)
-},
-
-["Strawberry Field (Zone 5)"] = {
-start = Vector3.new(-226,17,44),
-finish = Vector3.new(-132,24,-68),
-tp = Vector3.new(-182,21,-6)
-},
-
-["Bamboo Field (Zone 5)"] = {
-start = Vector3.new(48,17,12),
-finish = Vector3.new(212,24,-68),
-tp = Vector3.new(130,21,-36)
-},
-
-["Spider Field (Zone 5)"] = {
-start = Vector3.new(-104,17,40),
-finish = Vector3.new(16,24,-68),
-tp = Vector3.new(-50,21,2)
-},
-
-["Pineapple Patch (Zone 10)"] = {
-start = Vector3.new(184,65,-160),
-finish = Vector3.new(324,72,-260),
-tp = Vector3.new(254,69,-206)
-},
-
-["Stump Field (Zone 10)"] = {
-start = Vector3.new(372,93,-120),
-finish = Vector3.new(472,100,-228),
-tp = Vector3.new(410,97,-170)
-},
-
-["Cactus Field (Zone 15)"] = {
-start = Vector3.new(-260,65,-64),
-finish = Vector3.new(-120,72,-144),
-tp = Vector3.new(-190,69,-102)
-},
-
-["Pumpkin Patch (Zone 15)"] = {
-start = Vector3.new(-260,65,-148),
-finish = Vector3.new(-120,72,-224),
-tp = Vector3.new(-190,69,-182)
-},
-
-["Pine Tree Forest (Zone 15)"] = {
-start = Vector3.new(-380,65,-124),
-finish = Vector3.new(-280,72,-256),
-tp = Vector3.new(-330,69,-190)
-},
-
-["Rose Field (Zone 15)"] = {
-start = Vector3.new(-396,17,172),
-finish = Vector3.new(-264,24,84),
-tp = Vector3.new(-338,21,122)
-},
-
-["Hub Field (Zone 20)"] = {
-start = Vector3.new(-64,-1,-9940),
-finish = Vector3.new(60,6,-10064),
-tp = Vector3.new(-2,3,-9990)
-},
-
-["Moutain Top Field (Zone 30)"] = {
-start = Vector3.new(24,173,-108),
-finish = Vector3.new(128,180,-228),
-tp = Vector3.new(78,177,-182)
-},
-
-["Coconut Field (Zone 35)"] = {
-start = Vector3.new(-320,67,512),
-finish = Vector3.new(-192,74,420),
-tp = Vector3.new(-250,71,482)
-},
-
-["Pepper Patch (Zone 35)"] = {
-start = Vector3.new(-536,120,592),
-finish = Vector3.new(-444,127,476),
-tp = Vector3.new(-490,124,534)
-}
-
-}
-
-autoFarmButton.MouseButton1Click:Connect(function()
-
-	autoFarmVisible = not autoFarmVisible
-
-	if autoFarmVisible then
-		autoFarmFrame.Visible = true
-		autoFarmButton.BackgroundColor3 = Color3.fromRGB(0,170,0)
-
-        tudongcay = true
-
-	else
-		autoFarmFrame.Visible = false
-		autoFarmButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-
-        tudongcay = false
-
-	end
-
-end)
-
-local function getFieldData(fieldName)
-	return fieldData[fieldName]
-end
-
-local regionPart
-local autoFarmRunning = false
 local pollenfull = false
 local pollenconvert = false
-local currentTarget = nil
-local tokenList = {}
 
-local function createRegion(startPos, finishPos)
+local function getDisplayText() local playerFolderPollen = workspace:FindFirstChild(player.Name); if not playerFolderPollen then return "" end; for _,obj in pairs(playerFolderPollen:GetDescendants()) do if obj.Name == "Display" then for _,v in pairs(obj:GetDescendants()) do if v:IsA("TextLabel") then return v.Text end end end end; return "" end; 
+local function press1() vimhive:SendKeyEvent(true, Enum.KeyCode.One, false, game); vimhive:SendKeyEvent(false, Enum.KeyCode.One, false, game) end; 
+local function isInside(pos, min, max) return pos.X >= math.min(min.X, max.X) and pos.X <= math.max(min.X, max.X) and pos.Y >= math.min(min.Y, max.Y) and pos.Y <= math.max(min.Y, max.Y) and pos.Z >= math.min(min.Z, max.Z) and pos.Z <= math.max(min.Z, max.Z) end; 
+local function getCenter(min, max) return (min + max)/2 end; 
+local function scanField(field) targetList = {}; local center = getCenter(field.min, field.max); local size = field.max - field.min; for _, part in ipairs(workspace:GetPartBoundsInBox(CFrame.new(center), size)) do if part.Name == "C" then table.insert(targetList, part) end end end; 
 
-	if regionPart then
-		regionPart:Destroy()
-	end
-
-	tokenList = {}
-
-	local min = Vector3.new(
-		math.min(startPos.X,finishPos.X),
-		math.min(startPos.Y,finishPos.Y),
-		math.min(startPos.Z,finishPos.Z)
-	)
-
-	local max = Vector3.new(
-		math.max(startPos.X,finishPos.X),
-		math.max(startPos.Y,finishPos.Y),
-		math.max(startPos.Z,finishPos.Z)
-	)
-
-	local size = max - min
-	local center = min + size/2
-
-	regionPart = Instance.new("Part")
-	regionPart.Anchored = true
-	regionPart.CanCollide = false
-	regionPart.Transparency = 0.7
-	regionPart.Color = Color3.new(1,1,1)
-	regionPart.Size = size
-	regionPart.Position = center
-	regionPart.Parent = workspace
-
-	local highlight = Instance.new("Highlight")
-	highlight.FillColor = Color3.new(1,1,1)
-	highlight.FillTransparency = 0.6
-	highlight.OutlineTransparency = 0
-	highlight.Parent = regionPart
-
-    ignoredTokens = {}
-
-    local parts = workspace:GetPartBoundsInBox(
-        regionPart.CFrame,
-        regionPart.Size
-    )
-
-    for _,part in ipairs(parts) do
-
-        local current = part
-
-        while current do
-            if current.Name == "C" then
-                ignoredTokens[current] = true
-                break
-            end
-            current = current.Parent
-        end
-
+local function watchField(field)
+    if fieldConnection then
+        fieldConnection:Disconnect()
+        fieldConnection = nil
     end
 
-    autoFarmRunning = true
-
-end
-
-local function isPlayerInsideRegion(startPos, finishPos)
-
-	local character = player.Character
-	if not character then return false end
-
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if not root then return false end
-
-	local pos = root.Position
-
-	local min = Vector3.new(
-		math.min(startPos.X, finishPos.X),
-		math.min(startPos.Y, finishPos.Y),
-		math.min(startPos.Z, finishPos.Z)
-	)
-
-	local max = Vector3.new(
-		math.max(startPos.X, finishPos.X),
-		math.max(startPos.Y, finishPos.Y),
-		math.max(startPos.Z, finishPos.Z)
-	)
-
-	return (
-		pos.X >= min.X and pos.X <= max.X and
-		pos.Y >= min.Y and pos.Y <= max.Y and
-		pos.Z >= min.Z and pos.Z <= max.Z
-	)
-
-end
-
-local function hasCInPath(obj)
-
-	local current = obj
-
-	while current do
-
-		if current.Name == "C" then
-			return true
-		end
-
-		current = current.Parent
-	end
-
-	return false
-
-end
-
-local function updateTokens()
-
-	if not regionPart then return end
-
-	local found = {}
-
-	local parts = workspace:GetPartBoundsInBox(
-		regionPart.CFrame,
-		regionPart.Size
-	)
-
-	for _, part in ipairs(parts) do
-
-		local current = part
-		local modelC = nil
-
-		while current do
-			if current.Name == "C" then
-				modelC = current
-				break
-			end
-			current = current.Parent
-		end
-
-		if modelC and not ignoredTokens[modelC] then
-			found[modelC] = part
-
-			-- nếu chưa có thì thêm
-			if not tokenList[modelC] then
-				tokenList[modelC] = part
-			end
-		end
-	end
-
-	for modelC,_ in pairs(tokenList) do
-		if not found[modelC] then
-			tokenList[modelC] = nil
-		end
-	end
-
-end
-
-local function getFirstToken()
-	for _, part in pairs(tokenList) do
-		return part
-	end
-	return nil
-end
-
-local function moveToToken(token)
-
-	local character = player.Character
-	if not character then return end
-
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	local root = character:FindFirstChild("HumanoidRootPart")
-
-	if not humanoid or not root then return end
-
-	local target = Vector3.new(
-		token.Position.X,
-		root.Position.Y,
-		token.Position.Z
-	)
-
-	if (root.Position - target).Magnitude > 3 then
-		humanoid:MoveTo(target)
-	end
-
-end
-
-local function getDisplayText()
-
-	local playerFolderPollen = workspace:FindFirstChild(player.Name)
-	if not playerFolderPollen then return "" end
-
-	for _,obj in pairs(playerFolderPollen:GetDescendants()) do
-		if obj.Name == "Display" then
-
-			for _,v in pairs(obj:GetDescendants()) do
-				if v:IsA("TextLabel") then
-					return v.Text
-				end
-			end
-
-		end
-	end
-
-	return ""
-end
-
-for _,name in ipairs(fields) do
-
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1,-10,0,30)
-	btn.Text = name
-	btn.TextSize = 11
-	btn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.Parent = autoFarmFrame
-
-	fieldButtons[name] = btn
-
-	btn.MouseButton1Click:Connect(function()
-
-	    if activeFieldButton == btn then
-	        btn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-	        activeFieldButton = nil
-
-        	autoFarmRunning = false
-
-            ignoredTokens = {}
-
-    	    if regionPart then
-    		    regionPart:Destroy()
-    	    end
-
-    	    return
+    fieldConnection = workspace.DescendantAdded:Connect(function(obj)
+        if autoFarmEnabled and obj.Name == "C" and currentField == field then
+            local pos = obj.Position
+            if isInside(pos, field.min, field.max) then
+                table.insert(targetList, obj)
+            end
         end
-
-	    if activeFieldButton then
-		    activeFieldButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
-	    end
-
-	    activeFieldButton = btn
-    	btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-
-    	local data = fieldData[name]
-
-    	if not data then
-    		warn("Không có dữ liệu field:",name)
-    		return
-    	end
-
-    	if data.start == Vector3.new() then
-    		warn("Field chưa có tọa độ:",name)
-    		return
-    	end
-
-    	createRegion(data.start,data.finish)
-
     end)
-
 end
 
-task.spawn(function()
+local function moveToTargets()
+    if moving then return end
+    moving = true
 
-	while true do
+    task.spawn(function()
+        while autoFarmEnabled do
 
-		task.wait(0)
+			local text = getDisplayText()
 
-        if not tudongcay then
-            continue
-        end
+			local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
 
-		if not autoFarmRunning then
-			continue
-		end
+			if left and right then
 
-		if not activeFieldButton then
-			continue
-		end
+				left = tonumber(left)
+				right = tonumber(right)
 
-		local fieldName = activeFieldButton.Text
-		local data = fieldData[fieldName]
+				if left >= right then
+					pollenfull = true
+				end
 
-		if not data then
-			continue
-		end
+				if left < right and not pollenconvert then
+					pollenfull = false
+				end
 
-		if not isPlayerInsideRegion(data.start,data.finish) and not pollenfull and not pollenconvert then
-	        local character = player.Character
-	        if character then
-	        	local root = character:FindFirstChild("HumanoidRootPart")
-	        	if root then
-	        		root.CFrame = CFrame.new(data.tp)
-	        	end
-	        end
-        end
+			end
 
-		updateTokens()
+			if pollenfull and not pollenconvert then
 
-		local firstToken = getFirstToken()
+				hrphive.CFrame = CFrame.new(savedPositionHive)
+				task.wait(1)
+				pressE()
+				pollenconvert = true
+				task.wait(1)
 
-		if firstToken and not pollenfull and not pollenconvert then
-			moveToToken(firstToken)
-		end
+			end
 
-        local text = getDisplayText()
+			if left == 0 then
+				pollenconvert = false
+			end
 
-		local left,right = string.match(text,"(%d+)%s*/%s*(%d+)")
-
-		if left and right then
-
-			left = tonumber(left)
-			right = tonumber(right)
-
-			if left >= right then
-				pollenfull = true
+			if not currentField or not hrphive then
+                task.wait(0.1)
+                continue
             end
 
-            if left < right and not pollenconvert then
-				pollenfull = false
+            if not isInside(hrphive.Position, currentField.min, currentField.max) and not pollenfull and not pollenconvert then
+                hrphive.CFrame = CFrame.new(getCenter(currentField.min, currentField.max))
+                task.wait(0.2)
+                press1()
+            end
+
+            for i, obj in ipairs(targetList) do
+				if obj and obj.Parent then
+					local pos = obj.Position
+					local start = hrphive.Position
+					local goal = Vector3.new(pos.X, start.Y, pos.Z)
+
+					if useLerp and not pollenfull and not pollenconvert then
+						local start = hrphive.Position
+						local goal = Vector3.new(obj.Position.X, start.Y, obj.Position.Z)
+
+						local speed = 90
+						local dist = (goal - start).Magnitude
+						local duration = dist / speed
+
+						local t = 0
+						while t < 1 do
+							local dt = task.wait()
+							t += dt / duration
+							hrphive.CFrame = CFrame.new(start:Lerp(goal, math.clamp(t,0,1)))
+						end
+					elseif not useLerp and not pollenfull and not pollenconvert then
+						local humanoid = hrphive.Parent:FindFirstChildOfClass("Humanoid")
+						if humanoid then
+							humanoid:MoveTo(goal)
+
+							local reached = false
+							local startTime = tick()
+							local timeout = 0.05
+
+						while autoFarmEnabled and not reached do
+							local dist = (hrphive.Position - goal).Magnitude
+
+							if dist < 1 then
+								reached = true
+							end
+
+							if tick() - startTime > timeout then
+								break
+							end
+
+							task.wait(0.05)
+						end
+					end
+				end
 			end
-
+			targetList[i] = nil
 		end
-
-        if pollenfull and not pollenconvert then
-
-			hrphive.CFrame = CFrame.new(savedPositionHive)
-            task.wait(1)
-            pressE()
-            pollenconvert = true
-            task.wait(1)
-
-		end
-
-        if left == 0 then
-            pollenconvert = false
+            task.wait(0.05)
         end
 
+        moving = false
+    end)
+end
+
+local y = 0
+for _, field in ipairs(fields) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,0,0,30)
+    btn.Position = UDim2.new(0,0,0,y)
+    btn.Text = field.name
+    btn.TextSize = 11
+    btn.BackgroundColor3 = Color3.fromRGB(170,0,0)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = autoFarmUI
+
+	btn.MouseButton1Click:Connect(function()
+		if activeButton and activeButton ~= btn then
+			activeButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
+		end
+
+		activeButton = btn
+		btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+
+		targetList = {}
+		currentField = field
+
+		currentField = field
+		scanField(field)
+		watchField(field)
+
+		if autoFarmEnabled then
+			moveToTargets()
+		end
+	end)
+
+    y = y + 30
+end
+
+autoFarmBtn.MouseButton1Click:Connect(function()
+    autoFarmEnabled = not autoFarmEnabled
+    autoFarmUI.Visible = autoFarmEnabled
+
+    autoFarmBtn.BackgroundColor3 = autoFarmEnabled and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
+
+	if autoFarmEnabled and currentField then
+		moveToTargets()
 	end
 
+    if not autoFarmEnabled then
+        currentField = nil
+        targetList = {}
+
+        if activeButton then
+            activeButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
+            activeButton = nil
+        end
+
+        if fieldConnection then
+            fieldConnection:Disconnect()
+            fieldConnection = nil
+        end
+    end
 end)
 
 -- \\ Tự Động Cày //
-
-
 -- // Tự Động Giữ Chuột \\
-
-local tdgc = Instance.new("TextButton")
-tdgc.Size = UDim2.new(1,-10,0,30)
-tdgc.Position = UDim2.new(0,10,0,240)
-tdgc.Text = "Tự Động Giữ Chuột"
-tdgc.TextSize = 11
-tdgc.BackgroundColor3 = Color3.fromRGB(170,0,0)
-tdgc.TextColor3 = Color3.new(1,1,1)
-tdgc.Parent = frame
-
-local UIS = game:GetService("UserInputService")
-local VIM = game:GetService("VirtualInputManager")
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
-local holding = false
-
-tdgc.MouseButton1Click:Connect(function()
-
-	holding = not holding
-
-	if holding then
-		VIM:SendMouseButtonEvent(0,0,0,true,game,0)
-		tdgc.BackgroundColor3 = Color3.fromRGB(0,170,0)
-	else
-		VIM:SendMouseButtonEvent(0,0,0,false,game,0)
-		tdgc.BackgroundColor3 = Color3.fromRGB(170,0,0)
-	end
-
-end)
-
-local pause = false
-
-UIS.InputEnded:Connect(function(input, gp)
-
-	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and gp then return end
-
-	if holding and input.UserInputType == Enum.UserInputType.MouseButton1 then
-
-		if pause then return end
-
-		pause = true
-
-		task.spawn(function()
-			VIM:SendMouseButtonEvent(0,0,0,false,game,0)
-			task.wait(1)
-
-			if holding then
-				VIM:SendMouseButtonEvent(0,0,0,true,game,0)
-			end
-
-			pause = false
-		end)
-
-	end
-	
-end)
-
+local tdgc = Instance.new("TextButton"); tdgc.Size = UDim2.new(1,0,0,-30); tdgc.Position = UDim2.new(0,0,0,270); tdgc.Text = "Tự Động Giữ Chuột"; tdgc.TextSize = 11; tdgc.BackgroundColor3 = Color3.fromRGB(170,0,0); tdgc.TextColor3 = Color3.new(1,1,1); tdgc.Parent = bangden; local UIS = game:GetService("UserInputService"); local VIM = game:GetService("VirtualInputManager"); local player = game.Players.LocalPlayer; local playerGui = player:WaitForChild("PlayerGui"); local holding = false; tdgc.MouseButton1Click:Connect(function() holding = not holding; if holding then VIM:SendMouseButtonEvent(0,0,0,true,game,0); tdgc.BackgroundColor3 = Color3.fromRGB(0,170,0) else VIM:SendMouseButtonEvent(0,0,0,false,game,0); tdgc.BackgroundColor3 = Color3.fromRGB(170,0,0) end end); local pause = false; UIS.InputEnded:Connect(function(input, gp) if input.UserInputType ~= Enum.UserInputType.MouseButton1 and gp then return end; if holding and input.UserInputType == Enum.UserInputType.MouseButton1 then if pause then return end; pause = true; task.spawn(function() VIM:SendMouseButtonEvent(0,0,0,false,game,0); task.wait(1); if holding then VIM:SendMouseButtonEvent(0,0,0,true,game,0) end; pause = false end) end end)
 -- \\ Tự Động Giữ Chuột //
-
-
--- // Zoom gần-xa + luôn nhìn thấy nhân vật \\
-
-local Players = game:GetService("Players")
-local p = Players.LocalPlayer
-
-local function applyCamera()
-	p.CameraMaxZoomDistance = 150
-	p.CameraMinZoomDistance = 0
-	p.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
-end
-
-applyCamera()
-
-p.CharacterAdded:Connect(function()
-	task.wait(0.5)
-	applyCamera()
-end)
--- \\ Zoom gần-xa + luôn nhìn thấy nhân vật //
-
-
+-- // Thu-phóng màn hình + luôn nhìn thấy nhân vật \\
+local Players = game:GetService("Players"); local p = Players.LocalPlayer; local function applyCamera() p.CameraMaxZoomDistance = 150; p.CameraMinZoomDistance = 0; p.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam end; applyCamera(); p.CharacterAdded:Connect(function() task.wait(0.5); applyCamera() end)
+-- \\ Thu-phóng màn hình + luôn nhìn thấy nhân vật //
 -- // Chống rời máy chủ \\
-
-local VirtualUser = game:GetService("VirtualUser")
-
-game:GetService("Players").LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new(0,0))
-end)
-
+local VirtualUser = game:GetService("VirtualUser"); game:GetService("Players").LocalPlayer.Idled:Connect(function() VirtualUser:CaptureController(); VirtualUser:ClickButton2(Vector2.new(0,0)) end)
 -- \\ Chống rời máy chủ //
-
-
--- // Ẩn/Hiện Bảng Đen \\
-
-UIS.InputBegan:Connect(function(input, processed)
-
-	if processed then return end
-
-	if input.KeyCode == Enum.KeyCode.LeftAlt
-	or input.KeyCode == Enum.KeyCode.RightAlt then
-		frame.Visible = not frame.Visible
-
-        if tudongcay == true then
-            autoFarmFrame.Visible = not autoFarmFrame.Visible
-        end
-
-	end
-
+-- // Ẩn/Hiện bảng đen \\
+local ah = false; UserInputService.InputBegan:Connect(function(input, gameProcessed) if gameProcessed then return end; if input.KeyCode == Enum.KeyCode.LeftAlt then ah = true end; if ah == false then return end; bangden.Visible = not bangden.Visible; 
+if autoFarmUI.Visible == false and autoFarmEnabled == true then autoFarmUI.Visible = true; elseif autoFarmUI.Visible == true then autoFarmUI.Visible = false end; ah = false 
 end)
-
--- \\ Ẩn/Hiện Bảng Đen //
+-- \\ Ẩn/Hiện bảng đen //
